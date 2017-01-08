@@ -1,0 +1,23 @@
+# Description: Editeur de fichier a la volée (Stream)
+# URL: http://www.gnu.org/software/sed//sed.html
+# Maintainer:  Ken Pizzini ken at gnu dot org , Paolo Bonzini bonzini at gnu dot org
+# Packager: thierryn1 at hispeed dot ch
+
+name=sed
+version=4.2.2
+release=1
+
+source=(http://ftp.gnu.org/gnu/sed/sed-$version.tar.bz2)
+
+build()
+{
+cd sed-$version
+./configure --prefix=/usr --bindir=/bin \
+--libdir=/lib --htmldir=/usr/share/doc/sed-$version
+make
+make html
+make check
+make DESTDIR=$PKG install
+make -C doc DESTDIR=$PKG install-html
+rm -rf $PKG/usr/share/info/dir
+}

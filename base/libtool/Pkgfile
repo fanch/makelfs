@@ -1,0 +1,23 @@
+# Description: Librairie pour le support de scripts génériques
+# URL: http://www.gnu.org/software/libtool/
+# Maintainer: Gordon Matzigkeit  gord at gnu dot org
+# Packager: thierryn1 at hispeed dot ch
+
+name=libtool
+version=2.4.6
+release=1
+
+source=(http://ftp.gnu.org/gnu/libtool/libtool-$version.tar.gz)
+
+build()
+{
+cd libtool-*
+./configure --prefix=/usr
+
+make
+
+make DESTDIR=$PKG install
+if [ -f $PKG/usr/share/info/dir ]; then
+	rm $PKG/usr/share/info/dir
+fi
+}

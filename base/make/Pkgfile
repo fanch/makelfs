@@ -1,0 +1,22 @@
+# Description: programme qui facilite et optimise la compilation de fichiers sources
+# URL: http://www.gnu.org/software/make/
+# Maintainer: Paul D. Smith psmith at gnu dot org, Boris Kolpackov boris at kolpackov dot net
+# Packager: thierryn1 at hispeed dot ch
+
+name=make
+version=4.2.1
+release=1
+
+source=(http://ftp.gnu.org/gnu/make/make-$version.tar.bz2)
+build()
+{
+cd  make-$version
+
+./configure --prefix=/usr
+make
+make DESTDIR=$PKG install
+if [ -f $PKG/usr/share/info/dir ]; then
+	rm $PKG/usr/share/info/dir
+fi
+}
+

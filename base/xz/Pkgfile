@@ -1,0 +1,24 @@
+# Description: Utilitaire pour extraire/comprimer les fichiers lzma
+# URL: http://tukaani.org/xz/
+# Maintainer: Lasse Collin, lasse dot collin at tukaani dot org
+# Packager: thierryn1 at hispeed dot ch
+
+
+name=xz
+version=5.2.3
+release=1
+source=(http://tukaani.org/xz/xz-$version.tar.xz)
+
+build()
+{
+cd xz-$version
+./configure --prefix=/usr \
+--bindir=/bin \
+ --docdir=/usr/share/doc/xz-$version
+make
+make pkgconfigdir=/usr/lib/pkgconfig DESTDIR=$PKG install
+mkdir -pv $PKG/{,usr/}lib
+mv -v $PKG/usr/lib/liblzma.so.* \
+$PKG/lib
+ln -svf ../../lib/liblzma.so.$version $PKG/usr/lib/liblzma.so
+}

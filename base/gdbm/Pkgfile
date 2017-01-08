@@ -1,0 +1,26 @@
+# Description: Gestionnaire de base de données GNU
+# URL: http://www.gnu.org/software/gdbm/gdbm.html
+# Maintainer: Philip A. Nelson  phil at cs dot wwu dot edu, Jason Downs downsj at downsj dot com, Sergey Poznyakoff gray at gnu dot org dot ua
+# Packager: thierryn1 at hispeed dot ch
+
+name=gdbm
+version=1.12
+release=1
+
+source=(http://ftp.gnu.org/gnu/gdbm/gdbm-$version.tar.gz)
+build() {
+cd gdbm-$version
+./configure --prefix=/usr --libdir=/lib \
+--bindir=/bin --enable-libgdbm-compat
+
+make
+
+make check
+
+make BINOWN=root BINGRP=root prefix=$PKG/usr \
+libdir=$PKG/lib bindir=$PKG/bin install
+
+rm -rf $PKG/usr/share/info/dir
+
+}
+

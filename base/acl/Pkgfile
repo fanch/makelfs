@@ -1,0 +1,26 @@
+# Description: Librairie pour le support ACL
+# URL: http://oss.sgi.com/projects/xfs/
+# Maintainer: NuTyX core team
+# Packager: thierryn1 at hispeed dot ch
+# Depends on: attr
+# Run on: attr
+
+name=acl
+version=2.2.52
+release=1
+source=(http://mirrors.zerg.biz/nongnu/$name/$name-$version.src.tar.gz)
+
+build() {
+	cd acl-*
+	sed -i -e 's|/@pkg_name@|&-@pkg_version@|' \
+	include/builddefs.in
+	./configure --prefix=/usr --libexecdir=/usr/lib
+	make
+	make DIST_ROOT=$PKG install install-lib install-dev
+	chmod -v 0755 $PKG/usr/lib/*.so
+	mkdir $PKG/lib
+	mv -v $PKG/usr/lib/libacl.so.* $PKG/lib
+	ln -sfv ../../lib/libacl.so.1 \
+	$PKG/usr/lib/libacl.so
+}
+  

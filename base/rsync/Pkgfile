@@ -1,0 +1,38 @@
+# Description: Protocol de synchronisation de fichiers très efficace
+# URL: http://samba.anu.edu.au/rsync/
+# Maintainer: git.samba.org/?p=rsync.git;a=summary
+# Packager: thierryn1 at hispeed dot ch
+
+name=rsync
+version=3.1.2
+release=1
+source=(http://rsync.samba.org/ftp/$name/$name-$version.tar.gz
+	rsyncd.conf rsync.driver )
+
+build() {
+source /etc/blfs-bootscripts
+wget http://www.linuxfromscratch.org/blfs/downloads/svn/$scripts-$scriptsversion.tar.bz2
+
+cd $name-$version
+./configure --prefix=/usr \
+-mandir=/usr/share/man \
+--infodir=/usr/share/info
+make
+make DESTDIR=$PKG install
+
+install -d $PKG/etc/{rc.d,ports/drivers} $PKG/var/log
+
+# drivers
+mkdir -p $PKG/var/lib/pkg/drivers
+install -m 755 $SRC/rsync.driver $PKG/var/lib/pkg/drivers/rsync
+
+install -m 644 $SRC/rsyncd.conf $PKG/etc
+
+# service
+cd $SRC
+
+tar xf $scripts-$scriptsversion.tar.bz2
+cd $SRC/$scripts-$scriptsversion
+make DESTDIR=$PKG install-rsyncd
+}
+

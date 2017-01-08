@@ -1,0 +1,109 @@
+# Description: La collection de compilateurs C, C++, obc  GNU
+# URL: http://gcc.gnu.org
+# Packager: thierryn1 at hispeed dot ch
+# Maintainer: Jakub Jelinek jakub at redhat dot com
+
+name=gcc
+version=6.3.0
+release=4
+
+source=(http://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2)
+
+
+build()
+{
+cd gcc-$version
+
+mkdir -v ../gcc-build
+cd ../gcc-build
+
+SED=sed \
+../gcc-$version/configure --prefix=/usr \
+    --libexecdir=/usr/lib \
+	--enable-languages=c,c++,objc,fortran \
+	--enable-threads=posix \
+	--enable-__cxa_atexit \
+	--enable-clocale=gnu \
+	--enable-shared \
+        --disable-nls \
+        --with-x=no \
+        --with-system-zlib \
+	--disable-multilib 
+
+    	make bootstrap
+    	make -j1 DESTDIR=$PKG install
+    
+    install -d $PKG/lib
+    ln -sf ../usr/bin/cpp $PKG/lib/cpp
+    ln -sf gcc $PKG/usr/bin/cc
+    ln -sf g++ $PKG/usr/bin/c++
+
+mv $PKG/usr/lib/gcc/*/$version/include-fixed/{limits.h,syslimits.h} $PKG/usr/lib/gcc/*/$version/include/
+
+install -dm755 $PKG/usr/share/gdb/auto-load/usr/lib
+install -dm755 $PKG/usr/lib/bfd-plugins
+cd $PKG/usr/lib/bfd-plugins
+
+case `uname -m` in
+	i?86) sed -i "s|-L$SRC[^ ]* ||g" \
+		$PKG/usr/lib/{libstdc++.la,libsupc++.la} 
+		mv -v $PKG/usr/lib/*gdb.py \
+		$PKG/usr/share/gdb/auto-load/usr/lib
+		ln -sfv ../../libexec/gcc/i686-pc-linux-gnu/$version/liblto_plugin.so;;
+	x86_64)
+		sed -i "s|-L$SRC[^ ]* ||g" \
+		$PKG/usr/lib64/{libstdc++.la,libsupc++.la} 
+		mv -v $PKG/usr/lib64/*gdb.py \
+		$PKG/usr/share/gdb/auto-load/usr/lib
+		ln -sfv ../../libexec/gcc/x86_64-unknown-linux-gnu/$version/liblto_plugin.so;;
+esac
+
+rm -rf $PKG/usr/share/info/dir
+
+
+# Move the needed runtime libraries
+case `uname -m` in
+	i?86) mkdir -pv $PKG/usr/lib
+	mv -v $PKG/usr/lib/libgfortran.{a,la} \
+	$PKG/lib/
+	ln -sv ../../lib/libgfortran.{la,a} $PKG/usr/lib
+	mv -v $PKG/usr/lib/libgfortran.so{,.3,.3.0.0} \
+	$PKG/lib/
+	ln -svf ../../lib/libgfortran.so{,.3,.3.0.0} $PKG/usr/lib
+	mv -v $PKG/usr/lib/libgcc_s.so{,.1} \
+	$PKG/lib
+	ln -sv ../../lib/libgcc_s.so{,.1} $PKG/usr/lib
+	mv -v $PKG/usr/lib/libstdc++.* \
+	$PKG/lib/
+	mv -v $PKG/usr/lib/libsupc++.{la,a} \
+	$PKG/lib
+	ln -sv ../../lib/libstdc++.so{,.6,.6.0.22} \
+	$PKG/usr/lib
+	ln -sv ../../lib/libstdc++.{a,la} \
+	$PKG/usr/lib
+	ln -sv ../../lib/libsupc++.{la,a} \
+	$PKG/usr/lib;;
+	
+	x86_64) mkdir -pv $PKG/usr/lib64
+	mv -v $PKG/usr/lib64/libgfortran.{a,la} \
+	$PKG/lib
+	ln -sv ../../lib/libgfortran.{la,a} $PKG/usr/lib64
+	mv -v $PKG/usr/lib64/libgfortran.so{,.3,.3.0.0} \
+	$PKG/lib
+	ln -sv ../../lib/libgfortran.so{,.3,.3.0.0} $PKG/usr/lib64
+	mv -v $PKG/usr/lib64/libgcc_s.so{,.1} \
+	$PKG/lib
+	ln -sv ../../lib/libgcc_s.so{,.1} $PKG/usr/lib64
+	mv -v $PKG/usr/lib64/libstdc++.* \
+	$PKG/lib
+	mv -v $PKG/usr/lib64/libsupc++.{la,a} \
+	$PKG/lib
+	ln -sv ../../lib/libstdc++.so{,.6,.6.0.22} \
+	$PKG/usr/lib64
+	ln -sv ../../lib/libstdc++.{a,la} \
+	$PKG/usr/lib64
+	ln -sv ../../lib/libsupc++.{la,a} \
+	$PKG/usr/lib64;;
+esac
+
+}

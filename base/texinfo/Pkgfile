@@ -1,0 +1,22 @@
+# Description: Un outil de lecture pour la documentation formatée du projet GNU
+# URL: http://www.gnu.org/software/texinfo
+# Maintainer: Karl Berry
+# Packager: thierryn1 at hispeed dot ch
+
+name=texinfo
+version=6.3
+release=1
+
+source=(http://ftp.gnu.org/gnu/texinfo/texinfo-$version.tar.gz)
+
+build()
+{
+cd texinfo-*
+./configure --prefix=/usr 
+make
+make check
+make install DESTDIR=$PKG
+if [ -f $PKG/usr/share/info/dir ]; then
+	rm $PKG/usr/share/info/dir
+fi
+}

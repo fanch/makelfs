@@ -1,0 +1,42 @@
+# Description: Le paquet GNU Binutils est une collection d'outils 
+# URL: http://sources.redhat.com/binutils/
+# Maintainer: Tristan Gingold, Alan Modra, etc gingold at adacore dot com amodra at bigpond dot net dot au
+# Packager: thierryn1 at hispeed dot ch
+
+name=binutils
+version=2.27
+release=1
+source=(http://ftp.gnu.org/gnu/binutils/binutils-$version.tar.bz2)
+build()
+{
+cd binutils-$version
+
+mkdir -v build
+cd build
+
+../configure \
+--prefix=/usr --includedir=/usr/include \
+--bindir=/bin --sbindir=/sbin \
+--datarootdir=/usr/share \
+--enable-shared --disable-werror
+
+make tooldir=/
+
+# make  LDFLAGS="" -k check || true
+
+# make tooldir=/usr DESTDIR=$PKG install
+make tooldir=/usr DESTDIR=$PKG install
+
+rm -rf $PKG/usr/share/info/dir
+mkdir $PKG/lib
+for lib in libopcodes libbfd
+do
+	mv $PKG/usr/lib/$lib-$version.so \
+	$PKG/lib/$lib-$version.so
+	ln -s $lib-$version.so  $PKG/lib/$lib
+	ln -s ../../lib/$lib-$version.so \
+	$PKG/usr/lib/$lib-$version.so
+	ln -s ../../lib/$lib-$version.so \
+	$PKG/usr/lib/$lib
+done
+}

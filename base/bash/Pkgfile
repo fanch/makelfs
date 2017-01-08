@@ -1,0 +1,25 @@
+# Description: Interpréteur de commandes très puissant.
+# URL: http://www.gnu.org/software/bash/
+# Maintainer: Brian Fox, Chet Ramey and many more
+# Packager: thierryn1 at hispeed dot ch
+
+name=bash
+version=4.4
+release=1
+
+source=(http://ftp.gnu.org/gnu/bash/bash-$version.tar.gz)
+
+build()
+{
+cd bash-$version
+./configure --prefix=/usr --bindir=/bin \
+--htmldir=/usr/share/doc/bash-$version --without-bash-malloc \
+--with-installed-readline
+make
+
+make DESTDIR=$PKG install
+
+rm -rf $PKG/usr/share/info/dir
+
+ln -s bash $PKG/bin/sh
+}

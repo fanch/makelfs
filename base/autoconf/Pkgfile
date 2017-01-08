@@ -1,0 +1,26 @@
+# Description: Permet la production de scripts pouvant configurer automatiquement le code source 
+# URL: http://www.gnu.org/software/autoconf/
+# Maintainer: David MacKenzie, François Pinard, Karl Berry, Richard Pixley, Ian Lance Taylor, Roland McGrath, Noah Friedman, david d zuhn, and many others.
+# Packager: thierryn1 at hispeed dot ch
+
+name=autoconf
+version=2.69
+release=1
+
+source=(http://ftp.gnu.org/gnu/autoconf/autoconf-$version.tar.xz)
+
+build()
+
+{
+cd autoconf-$version
+
+./configure --prefix=/usr
+
+make
+
+make DESTDIR=$PKG install
+if [ -f $PKG/usr/share/info/dir ]; then
+	rm $PKG/usr/share/info/dir
+fi
+}
+

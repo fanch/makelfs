@@ -1,0 +1,22 @@
+
+name=config
+version=20121118
+release=1
+
+source=(configLFS.orig)
+build() {
+echo "Entrer un mdp pour root"
+passwd
+mkdir $PKG/root
+cp configLFS.orig $PKG/root/config.sh
+echo "Ajuster les fichiers config"
+echo ""
+echo "/etc/sysconfig/ifconfig.eth0"
+echo "/etc/resolv.conf"
+echo "/etc/fstab"
+echo ""
+echo "et le lancer via"
+echo "sh /root/config.sh"
+echo SVN-$version > /etc/lfs-release
+chmod 1777 /tmp
+}

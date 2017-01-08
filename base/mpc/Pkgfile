@@ -1,0 +1,19 @@
+# Description: Librairie C pour le calcul arithmétique de nombres complexes avec une haute précision
+# URL: http://www.multiprecision.org/
+# Maintainer: Andreas Enge, Philipe Théveny, Paul Zimmermann
+# Packager: thierryn1 at hispeed dot ch
+
+name=mpc
+version=1.0.3
+release=1
+
+source=(http://www.multiprecision.org/mpc/download/mpc-$version.tar.gz )
+build()
+{
+cd mpc-$version
+./configure --prefix=/usr --libdir=/lib
+make
+make check
+make DESTDIR=$PKG install
+rm -rf $PKG/usr/share/info/dir
+}

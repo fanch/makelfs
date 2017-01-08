@@ -1,0 +1,41 @@
+# Description: Secure Sockets Layer and Transport Layer Security tools
+# URL: http://www.openssl.org/
+# Maintainer: NuTyX core team
+# Packager: thierryn1 at hispeed dot ch
+
+name=openssl
+version=1.0.2j
+release=1
+source=(ftp://ftp.openssl.org/source/$name-$version.tar.gz)
+
+
+build() {
+cd $name-$version
+./config --prefix=/usr \
+	--openssldir=/etc/ssl \
+	shared zlib-dynamic
+make
+make INSTALL_PREFIX=$PKG MANDIR=/usr/share/man \
+MANSUFFIX=ssl install
+
+cp -v -r certs $PKG/etc/ssl
+
+mv $PKG/usr/bin \
+$PKG
+
+mv $PKG/usr/lib* \
+$PKG/lib
+
+mkdir $PKG/usr/lib
+
+mv $PKG/lib/pkgconfig \
+$PKG/usr/lib
+
+for file in libcrypto.pc openssl.pc libssl.pc
+	do
+		sed -i "s/lib64/lib/" $PKG/usr/lib/pkgconfig/$file
+done
+install -dv -m755  $PKG/usr/share/doc/openssl-$version
+cp -vfr doc/*     $PKG/usr/share/doc/openssl-$version
+
+}

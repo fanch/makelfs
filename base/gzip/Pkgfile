@@ -1,0 +1,32 @@
+# Description: Programme pour compresser et décompresser des fichiers
+# URL: http://www.gzip.org/
+# Maintainer: Jean-loup Gailly jloup at gzip dot org, Mark Adler for the decompression code.
+# Packager: thierryn1 at hispeed dot ch
+
+name=gzip
+version=1.8
+release=1
+
+source=(http://ftp.gnu.org/gnu/gzip/gzip-$version.tar.xz)
+build()
+{
+cd gzip-$version
+
+
+./configure --prefix=/usr --bindir=/bin --libdir=/lib
+
+make
+make -k check || true
+
+install -d $PKG/usr/bin
+
+make DESTDIR=$PKG install
+
+mv -v $PKG/bin/{gzexe,uncompress,zcmp,zdiff,zegrep} $PKG/usr/bin
+mv -v $PKG/bin/{zfgrep,zforce,zgrep,zless,zmore,znew} $PKG/usr/bin
+if [ -f $PKG/usr/share/info/dir ]; then 
+	rm $PKG/usr/share/info/dir
+fi
+}
+
+

@@ -1,0 +1,35 @@
+# Description: Contient des Pluggable Authentication Modules (modules d'authentification branchables). C'est utile pour permettre à l'administrateur système local de choisir la façon dont s'authentifient les utilisateurs des applications.
+# URL: http://www.kernel.org/pub/libs/pam
+# Maintainer: git.fedorahosted.org/cgit/linux-pam.git/
+# Packager: thierryn1 at hispeed dot ch
+
+name=pam
+version=1.3.0
+release=1
+
+source=(http://linux-pam.org/library/Linux-PAM-$version.tar.bz2)
+
+build() {
+if [ "`uname -m`" == "x86_64" ]; then
+        LIB=lib64
+else
+        LIB=lib
+fi
+
+mkdir -p $PKG/etc/pam.d
+cd Linux-PAM-$version
+./configure --prefix=/usr --sysconfdir=/etc \
+--enable-securedir=/$LIB/security \
+--docdir=/usr/share/doc/Linux-PAM-$version \
+--disable-nis --libdir=/usr/lib
+make
+make DESTDIR=$PKG install
+chmod -v 4755 $PKG/sbin/unix_chkpwd
+
+for file in pam pam_misc pamc
+do
+  mv -v $PKG/usr/lib/lib${file}.so.* $PKG/$LIB &&
+  ln -sfv ../../$LIB/$(readlink $PKG/usr/lib/lib${file}.so) $PKG/usr/lib/lib${file}.so
+done
+}
+

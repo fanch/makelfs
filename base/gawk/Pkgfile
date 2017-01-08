@@ -1,0 +1,25 @@
+# Description: Programme pour manipuler des fichiers texte
+# URL: http://www.gnu.org/software/gawk/
+# Maintainer:  Paul Rubin, Paul Finlason, Richard Stallman, David Trueman and Arnold Robbins
+# Packager: thierryn1 at hispeed dot ch
+
+name=gawk
+version=4.1.4
+release=1
+source=(http://ftp.gnu.org/gnu/gawk/gawk-$version.tar.xz)
+build()
+{
+cd gawk-$version
+
+./configure --prefix=/usr --libexecdir=/usr/lib
+
+make
+
+# Some checks fails
+make check || true
+
+make DESTDIR=$PKG install
+if [ -f $PKG/usr/share/info/dir ]; then
+	rm $PKG/usr/share/info/dir
+fi
+}

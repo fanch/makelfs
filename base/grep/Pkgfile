@@ -1,0 +1,27 @@
+# Description: Programme pour rechercher à travers des fichiers.
+# URL: http://www.gnu.org/software/grep/ 
+# Maintainer: Jim Meyering jim at meyering dot net, Paolo Bonzini bonzini at gnu dot org
+# Packager: thierryn1 at hispeed dot ch
+
+name=grep
+version=2.27
+release=1
+
+source=(http://ftp.gnu.org/gnu/grep/grep-$version.tar.xz)
+
+build()
+{
+cd grep-$version
+
+
+./configure --prefix=/usr --bindir=/bin
+
+make
+
+make check
+
+make DESTDIR=$PKG install
+if [ -f $PKG/usr/share/info/dir ]; then
+	rm $PKG/usr/share/info/dir
+fi
+}

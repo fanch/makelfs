@@ -1,0 +1,49 @@
+# Description: Utilitaire pour les systèmes de fichiers Ext2/Ext3/Ext4
+# URL: http://e2fsprogs.sourceforge.net/
+# Maintainer: Ted Ts'o tytso at mit dot edu or tytso at alum dot mit dot edu
+# Packager: thierryn1 at hispeed dot ch 
+
+name=e2fsprogs
+version=1.43.3
+release=1
+
+source=(\
+http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-$version.tar.gz)
+
+build()
+{
+cd $name-$version
+sed -i -e 's|^LD_LIBRARY_PATH.*|&:/tools/lib|' tests/test_config
+mkdir -v build
+cd build
+LIBS=-L/tools/lib                    \
+CFLAGS=-I/tools/include              \
+PKG_CONFIG_PATH=/tools/lib/pkgconfig \
+../configure --prefix=/usr           \
+             --with-root-prefix=""   \
+             --enable-elf-shlibs     \
+             --disable-libblkid      \
+             --disable-libuuid       \
+             --disable-uuidd         \
+             --disable-fsck
+
+make
+
+# somes tests may fails
+
+# make check||true
+
+make DESTDIR=$PKG install install-libs || make -j1 DESTDIR=$PKG install install-libs
+
+
+chmod -v u+w $PKG/usr/lib/{libcom_err,libe2p,libext2fs,libss}.a
+
+gunzip -v $PKG/usr/share/info/libext2fs.info.gz
+
+
+makeinfo -o      doc/com_err.info ../lib/et/com_err.texinfo
+install -v -m644 doc/com_err.info $PKG/usr/share/info
+if [ -f $PKG/usr/share/info/dir ];then
+	rm $PKG/usr/share/info/dir
+fi
+}

@@ -1,0 +1,21 @@
+# Description: Information sur les données par IANA (Internet Assigned Number Authority)
+# URL: http://www.sethwklein.net/projects/iana-etc/
+# Maintainer: Seth W. Klein sk at sethwklein dot net
+# Packager: thierryn1 at hispeed dot ch
+
+name=iana-etc
+version=2.30
+release=1
+
+source=(http://sethwklein.net/iana-etc-$version.tar.bz2)
+
+build()
+{
+cd iana-etc-$version
+
+make
+
+make DESTDIR=$PKG install
+
+}
+

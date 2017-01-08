@@ -1,0 +1,20 @@
+# Description: Visualisation de fichier textes
+# URL: http://www.greenwoodsoftware.com/less/
+# Maintainer: Mark Nudelman
+# Packager: thierryn1 at hispeed dot ch
+
+name=less
+version=481
+release=1
+
+source=(http://www.greenwoodsoftware.com/less/less-$version.tar.gz)
+build()
+{
+cd less-$version
+
+./configure --prefix=/usr --sysconfdir=/etc
+
+make
+
+make DESTDIR=$PKG install
+}

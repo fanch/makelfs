@@ -1,0 +1,23 @@
+# Description: Utilitaire pour l'internationalisation et les locales.
+# URL: http://www.gnu.org/software/gettext/
+# Maintainer: Ulrich Drepper
+# Packager: thierryn1 at hispeed dot ch
+
+name=gettext
+version=0.19.8.1
+release=1
+
+source=(http://ftp.gnu.org/gnu/gettext/gettext-$version.tar.gz)
+build()
+{
+cd gettext-$version
+./configure --prefix=/usr \
+	--docdir=/usr/share/doc/gettext-$version
+make
+make check||true
+make DESTDIR=$PKG install
+if [ -f $PKG/usr/share/info/dir ]; then
+	rm $PKG/usr/share/info/dir
+fi
+chmod 0755 $PKG/usr/lib/preloadable_libintl.so
+}

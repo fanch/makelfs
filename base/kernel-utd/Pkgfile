@@ -1,0 +1,199 @@
+# Description: Version Up To Date (à jour) en développement continue ... avec le module nvidia
+# URL:  http://www.kernel.org
+# Packager: NuTyX community
+# Depends on: prt-get, cpio, bc
+
+name=kernel-utd
+version=4.9.1
+_BaseVersion=4.9
+release=1
+PKGMK_NO_STRIP="yes"
+SCRIPT_VERSION="saravane"
+INITRDBASE="nutyx-initrd"
+_extra=27022013
+_tools=17072013
+# Virtualbox
+vb_version=5.1.12
+buildrelease=112440
+[ "`uname -m`" == "i686"   ] && _VBARCH=x86
+[ "`uname -m`" == "x86_64"   ] && _VBARCH=amd64
+
+# nvidia
+nv_version=375.20
+[ "$PKGMK_ARCH" == "i686"   ] && _NVARCH=x86
+[ "$PKGMK_ARCH" == "x86_64"   ] && _NVARCH=x86_64
+
+
+# Broadcom
+wl_version=6.30.223.271
+[ "`uname -m`" == "x86_64" ] && _wlarch=_64
+
+## Download all the sources
+#
+
+source=(https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-${_BaseVersion}.tar.xz
+	config_64 config
+        install-${SCRIPT_VERSION}.ash
+        http://nutyx.meticul.eu/files/sekong-initrd-`uname -m`-${_extra}.tar.bz2
+        http://nutyx.meticul.eu/files/installtools-${_tools}.tar.bz2
+	https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-$version.xz	
+	http://download.virtualbox.org/virtualbox/${vb_version}/VirtualBox-${vb_version}-${buildrelease}-Linux_${_VBARCH}.run
+	http://download.nvidia.com/XFree86/Linux-${_NVARCH}/${nv_version}/NVIDIA-Linux-${_NVARCH}-${nv_version}.run
+	http://www.broadcom.com/docs/linux_sta/hybrid-v35${_wlarch}-nodebug-pcoem-${wl_version//./_}.tar.gz
+	broadcom-wl.modprobe.d broadcom-wl.license.patch wl_linux.c.patch)
+	
+build() {
+
+# initrd
+cd $SRC
+sed -i "s|#VERSION#|$SCRIPT_VERSION|g" \
+$INITRDBASE/rootfs/install/functions
+
+for i in setup-install setup-mirroir
+do
+        sed -i "s|#INSTALL#|install-$SCRIPT_VERSION.ash|" \
+        $INITRDBASE/rootfs/install/$i || exit 1
+done
+for i in main.txt setup-grub
+do
+        sed -i "s|#VERSION#|MINI $SCRIPT_VERSION|g" \
+        $INITRDBASE/rootfs/install/$i
+done
+
+# Checking kernel source version in /usr/src
+if [ "$release" == "1" ]; then
+        rm -rf /usr/src/linux-*
+fi
+if ! [ -d /usr/src/linux-${_BaseVersion} ]; then
+        mv linux-${_BaseVersion} /usr/src/
+        ln -s  /usr/src/linux-${_BaseVersion} linux-${_BaseVersion}
+        cd linux-${_BaseVersion}
+       # Ajout du patch si patch il y a
+	 if [ -f $SRC/patch-$version.bz2 ]; then
+                bzip2 -d -c  $SRC/patch-$version.bz2 | patch -Np1
+	fi
+        make mrproper
+        cd ..
+else
+        rm -r linux-${_BaseVersion}
+        ln -s  /usr/src/linux-${_BaseVersion} linux-${_BaseVersion}
+fi
+
+
+# Let's GO
+cd linux-${version%.*}
+
+# get the config
+case `uname -m` in
+      x86_64)
+         cp $SRC/config_64 ./.config;;
+      i?86)
+         cp $SRC/config ./.config;;
+esac
+
+# Retirer le commentaire ci-dessous pour modifier le config
+#make menuconfig
+
+
+# Compilation du kernel 
+make || make -j1	
+
+
+## Modules
+#
+# Kernel modules
+cd $SRC/linux-${_version}
+make INSTALL_MOD_PATH=$PKG modules_install
+
+KERNEL_VERSION="${version}-NuTyX-lts"
+
+# Module broadcom is broken on 32 bits machine
+# if [ "$PKGMK_ARCH" == "x86_64" ]; then
+#  cd $SRC
+#  bsdtar xf hybrid-v35${_wlarch}-nodebug-pcoem-${wl_version//./_}.tar.gz
+#  patch -p1 -i broadcom-wl.license.patch
+#  patch -p1 -i wl_linux.c.patch
+
+#  sed -e "/BRCM_WLAN_IFNAME/s:eth:wlan:" \
+#	-i src/wl/sys/wl_linux.c
+#  BUILD_NOPEDANTIC=1 make -C $SRC/linux-${_version} M=`pwd`
+#  install -m 0644 -D wl.ko $PKG/lib/modules/${KERNEL_VERSION}/kernel/drivers/zzzz/wl.ko
+#  install -Dm644 broadcom-wl.modprobe.d $PKG/etc/modprobe.d/broadcom-wl.conf
+# fi
+
+# Module nvidia
+cd $SRC
+sh NVIDIA-Linux-${_NVARCH}-${nv_version}.run --extract-only
+cd NVIDIA-Linux-${_NVARCH}-${nv_version}/kernel
+SYSSRC=$SRC/linux-${_version} make module
+for MODULE in nvidia.ko nvidia-modeset.ko
+do
+	install -m 0644 -D $MODULE \
+	$PKG/lib/modules/${KERNEL_VERSION}/kernel/drivers/zzzz/$MODULE
+done
+if [ "${_ARCH}" == "x86_64" ]; then
+	install -m 0644 -D nvidia-uvm.ko \
+	$PKG/lib/modules/${KERNEL_VERSION}/kernel/drivers/zzzz/nvidia-uvm.ko
+fi
+
+# Module virtualbox
+cd $SRC
+sh VirtualBox-${vb_version}-${buildrelease}-Linux_${_VBARCH}.run --target vb --keep --noexec
+cd vb
+tar xfj VirtualBox.tar.bz2
+cd src/vboxhost/
+KERNELRELEASE=${version}
+KERN_DIR=$SRC/linux-${_version} make
+
+for i in *.ko
+do
+	install -D -m0644 $i \
+	$PKG/lib/modules/${KERNEL_VERSION}/kernel/drivers/zzzz/$i
+done
+
+# depmod needed
+depmod -b $PKG -a ${KERNEL_VERSION}
+
+# Install config and kernel files
+cd $SRC/linux-${_version}
+
+# Création des dossiers
+mkdir -p $PKG/boot
+
+# Copie des fichiers kernel, config et System.map
+case `uname -m` in
+   x86_64)
+      cp  System.map \
+      $PKG/boot/System_64.map-$version
+      cp  .config \
+      $PKG/boot/config_64-$version
+      cp  arch/x86_64/boot/bzImage \
+      $PKG/boot/kernel-$version ;;
+   i?86)
+      cp  System.map \
+      $PKG/boot/System.map-$version
+      cp  .config \
+      $PKG/boot/config-$version
+      cp  arch/i386/boot/bzImage \
+      $PKG/boot/kernel-$version ;;
+esac
+
+# Lien pour que grub trouve le kernel
+ln -sf kernel-$version $PKG/boot/kernel
+
+cd $PKG/lib/modules/${version}/
+rm -f {build,source}
+ln -sv /usr/src/linux-${version} build
+ln -sv /usr/src/linux-${version} source
+
+# Récupération des firmware
+rm -rf $PKG/lib/firmware
+
+# Génération de l'initrd
+cd $SRC
+mkdir -p $PKG/root/bin
+install -m755 $SRC/install-${SCRIPT_VERSION}.ash \
+        $PKG/root/bin/install-${SCRIPT_VERSION}.ash
+bsdtar -c "-J" -f $PKG/boot/nutyx-initrd.tar.xz $INITRDBASE
+
+}

@@ -1,0 +1,22 @@
+# Description: Système de ports NuTyX
+# URL: http://crux.nu
+# Packager: tnuttens at gmail dot com
+# Depends on: rsync
+# Run on: rsync
+
+name=ports
+version=1.5
+release=12
+source=(http://crux.nu/files/tools/ports/$name-$version.tar.gz \
+	base.rsync extra.rsync)
+
+build () {
+cd $name-$version
+make
+make DESTDIR=$PKG install
+mkdir -p $PKG/usr/share/
+mv $PKG/usr/man \
+$PKG/usr/share
+install -m 0644 ../base.rsync $PKG/etc/ports/base.rsync
+install -m 0644 ../extra.rsync $PKG/etc/ports/extra.rsync
+}

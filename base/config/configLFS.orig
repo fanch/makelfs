@@ -1,0 +1,88 @@
+cat > /etc/resolv.conf << "EOF"
+# Begin /etc/resolv.conf
+nameserver 192.168.1.1
+EOF
+
+cat > /etc/sysconfig/console << "EOF"
+# Begin /etc/sysconfig/console
+
+KEYMAP="fr_FR-latin6.map"
+FONT="Lat2-Terminus16"
+UNICODE="1"
+LOGLEVEL=1
+
+# End /etc/sysconfig/console
+EOF
+cat > /etc/sysconfig/clock << "EOF"
+# Begin /etc/sysconfig/clock
+# Si l'horloge bios affiche l'heure à votre montre
+UTC=0
+# Si l'horloge bios affiche l'heure UTC 
+# UTC=1
+
+# End /etc/sysconfig/clock
+EOF
+echo "HOSTNAME=nutyx" > /etc/sysconfig/network
+cat > /etc/hosts << "EOF"
+# Begin /etc/hosts (network card version)
+
+127.0.0.1 localhost
+
+# End /etc/hosts (network card version)
+EOF
+# Décomentez les lignes ci-dessous si vous souhaitez installer une
+# adresse statique
+# cat > /etc/sysconfig/ifconfig.eth0 << "EOF"
+# ONBOOT=yes
+# IFACE=eth0
+# SERVICE=ipv4-static
+# IP=192.168.1.10
+# GATEWAY=192.168.1.1
+# PREFIX=24
+# BROADCAST=192.168.1.255
+# EOF
+cat > /etc/fstab << "EOF"
+# Begin /etc/fstab
+
+# file system  mount-point  type   options         dump  fsck
+#                                                        order
+/dev/sda3     /            reiserfs  defaults        1     1
+# /dev/sda2     swap         swap   pri=1           0     0
+
+proc           /proc        proc   nosuid,noexec,nodev         0     0
+sysfs          /sys         sysfs  nosuid,noexec,nodev         0     0
+devpts         /dev/pts     devpts gid=5,mode=620  0     0
+tmpfs          /run         tmpfs  defaults        0     0
+devtmpfs       /dev         devtmpfs mode=0755,nosuid    0     0
+
+# End /etc/fstab
+EOF
+mkdir -p /etc/X11/xorg.conf.d/
+cat > /etc/X11/xorg.conf.d/20-keyboard.conf << "EOF"
+Section "InputClass"
+        Identifier      "Generic Keyboard"
+        Driver          "evdev"
+        Option          "CoreKeyboard"
+        Option          "XkbRules"      "xorg"
+        Option          "XkbModel"      "pc105"
+# Clavier anglais:
+#       Option  "XkbLayout"     "us"
+# Clavier belge:
+#       Option  "XkbLayout"     "be"
+# Clavier Canadien:
+#       Option  "XkbLayout"     "ca"
+# Clavier Français:
+#       Option  "XkbLayout"     "fr"
+# Clavier Suisse:
+#       Option  "XkbLayout"     "ch"
+#       Option  "Xkbrules"      "xorg
+#       Option  "XkbVariant"    "fr"
+        Option  "XkbOptions" "grp:alt_shift_toggle"
+EndSection
+EOF
+# Ajuster le localtime ci-dessous
+# Par exemple:
+# ln -s /usr/share/zoneinfo/Europe/Paris /etc/locatime
+# ln -s /usr/share/zoneinfo/Europe/Brussels /etc/locatime
+# ln -s /usr/share/zoneinfo/America/Montreal /etc/locatime
+ln -s /usr/share/zoneinfo/Europe/Zurich /etc/locatime
