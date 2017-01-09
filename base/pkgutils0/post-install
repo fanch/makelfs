@@ -1,3 +1,0 @@
-if [ ! -f /etc/pkgmk.conf ]; then
-	mv /etc/pkgmk.conf{.original,}
-fi
