@@ -22,8 +22,6 @@ cd  inetutils-$version
             --disable-servers
 make
 
-make check
-
 make DESTDIR=$PKG install
 
 mkdir -p $PKG/{bin,sbin}
