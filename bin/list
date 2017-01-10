@@ -74,10 +74,7 @@ gpm
 openssh
 dialog
 squashfs
-prt-get
-pkgutils
 rsync
-ports
 sudo
 ca-certificates
 autoconf2-13
@@ -95,6 +92,9 @@ mdadm
 grub
 dhcpcd
 lz4
+prt-get
+pkgutils
+ports
 linux-firmware
 kernel-utd
 
