@@ -20,8 +20,8 @@ buildrelease=112440
 
 # nvidia
 nv_version=375.20
-[ "$PKGMK_ARCH" == "i686"   ] && _NVARCH=x86
-[ "$PKGMK_ARCH" == "x86_64"   ] && _NVARCH=x86_64
+[ "`uname -m`" == "i686"   ] && _NVARCH=x86
+[ "`uname -m`" == "x86_64"   ] && _NVARCH=x86_64
 
 
 # Broadcom
@@ -32,15 +32,15 @@ wl_version=6.30.223.271
 #
 
 source=(https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-${_BaseVersion}.tar.xz
-	config_64 config
-        install-${SCRIPT_VERSION}.ash
-        http://nutyx.meticul.eu/files/sekong-initrd-`uname -m`-${_extra}.tar.bz2
-        http://nutyx.meticul.eu/files/installtools-${_tools}.tar.bz2
-	https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-$version.xz	
-	http://download.virtualbox.org/virtualbox/${vb_version}/VirtualBox-${vb_version}-${buildrelease}-Linux_${_VBARCH}.run
-	http://download.nvidia.com/XFree86/Linux-${_NVARCH}/${nv_version}/NVIDIA-Linux-${_NVARCH}-${nv_version}.run
-	http://www.broadcom.com/docs/linux_sta/hybrid-v35${_wlarch}-nodebug-pcoem-${wl_version//./_}.tar.gz
-	broadcom-wl.modprobe.d broadcom-wl.license.patch wl_linux.c.patch)
+config_64 config
+install-${SCRIPT_VERSION}.ash
+http://nutyx.meticul.eu/files/sekong-initrd-`uname -m`-${_extra}.tar.bz2
+http://nutyx.meticul.eu/files/installtools-${_tools}.tar.bz2
+https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-$version.xz	
+http://download.virtualbox.org/virtualbox/${vb_version}/VirtualBox-${vb_version}-${buildrelease}-Linux_${_VBARCH}.run
+http://download.nvidia.com/XFree86/Linux-${_NVARCH}/${nv_version}/NVIDIA-Linux-${_NVARCH}-${nv_version}.run
+https://docs.broadcom.com/docs-and-downloads/docs/linux_sta/hybrid-v35${_wlarch}-nodebug-pcoem-${wl_version//./_}.tar.gz
+broadcom-wl.modprobe.d broadcom-wl.license.patch wl_linux.c.patch)
 	
 build() {
 
@@ -102,7 +102,7 @@ make || make -j1
 ## Modules
 #
 # Kernel modules
-cd $SRC/linux-${_version}
+cd $SRC/linux-${version%.*}
 make INSTALL_MOD_PATH=$PKG modules_install
 
 KERNEL_VERSION="${version}-NuTyX-lts"
@@ -125,7 +125,7 @@ KERNEL_VERSION="${version}-NuTyX-lts"
 cd $SRC
 sh NVIDIA-Linux-${_NVARCH}-${nv_version}.run --extract-only
 cd NVIDIA-Linux-${_NVARCH}-${nv_version}/kernel
-SYSSRC=$SRC/linux-${_version} make module
+SYSSRC=$SRC/linux-${version%.*} make module
 for MODULE in nvidia.ko nvidia-modeset.ko
 do
 	install -m 0644 -D $MODULE \
@@ -143,7 +143,7 @@ cd vb
 tar xfj VirtualBox.tar.bz2
 cd src/vboxhost/
 KERNELRELEASE=${version}
-KERN_DIR=$SRC/linux-${_version} make
+KERN_DIR=$SRC/linux-${version%.*} make
 
 for i in *.ko
 do
@@ -155,7 +155,7 @@ done
 depmod -b $PKG -a ${KERNEL_VERSION}
 
 # Install config and kernel files
-cd $SRC/linux-${_version}
+cd $SRC/linux-${version%.*}
 
 # Création des dossiers
 mkdir -p $PKG/boot
@@ -181,10 +181,10 @@ esac
 # Lien pour que grub trouve le kernel
 ln -sf kernel-$version $PKG/boot/kernel
 
-cd $PKG/lib/modules/${version}/
+cd $PKG/lib/modules/${version%.*}/
 rm -f {build,source}
-ln -sv /usr/src/linux-${version} build
-ln -sv /usr/src/linux-${version} source
+ln -sv /usr/src/linux-${version%.*} build
+ln -sv /usr/src/linux-${version%.*} source
 
 # Récupération des firmware
 rm -rf $PKG/lib/firmware
